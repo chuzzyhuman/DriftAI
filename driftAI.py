@@ -532,6 +532,21 @@ def draw_stats():
             pg.draw.line(screen, (255, 0, 255), (WIDTH + 20 + i*(SCREEN_WIDTH-WIDTH-40)/(len(best_avg_fitness) - 1), bottom - log(best_avg_fitness[i], GRAPH_LOG)*(bottom - top)/log(max_fitness, GRAPH_LOG)), (WIDTH + 20 + (i + 1)*(SCREEN_WIDTH-WIDTH-40)/(len(best_avg_fitness) - 1), bottom - log(best_avg_fitness[i + 1], GRAPH_LOG)*(bottom - top)/log(max_fitness, GRAPH_LOG)), 5)
         text = font.render(f"{max_fitness:.2f}", True, WHITE)
         screen.blit(text, (WIDTH + 30, 135))
+    elif GRAPH_NUM == 2:
+        max_score = 1 if len(score_list[gen-1]) == 0 else max(max(score_list[gen-1].keys()), 1)
+        max_count = 0 if len(score_list[gen-1]) == 0 else max(score_list[gen-1].values())
+        prev = (WIDTH + 20, bottom if 0 not in score_list[gen-1] else bottom - log(score_list[gen-1][0]*(bottom - top)/max_count, GRAPH_LOG))
+        for j in range(1, max_score + 1):
+            if j in score_list[gen-1]:
+                pg.draw.line(screen, GREEN, prev, (WIDTH + 20 + j*(SCREEN_WIDTH-WIDTH-40)/max_score, bottom - log(score_list[gen-1][j]*(bottom - top)/max_count, GRAPH_LOG)), 5)
+                prev = (WIDTH + 20 + j*(SCREEN_WIDTH-WIDTH-40)/max_score, bottom - log(score_list[gen-1][j]*(bottom - top)/max_count, GRAPH_LOG))
+            else:
+                pg.draw.line(screen, GREEN, prev, (WIDTH + 20 + j*(SCREEN_WIDTH-WIDTH-40)/max_score, bottom), 5)
+                prev = (WIDTH + 20 + j*(SCREEN_WIDTH-WIDTH-40)/max_score, bottom)
+        text = font.render(f"{max_count}", True, WHITE)
+        screen.blit(text, (WIDTH + 30, 135))
+        text = font.render(f"{max_score}", True, WHITE)
+        screen.blit(text, (SCREEN_WIDTH - 30 - 10.4*int(np.log10(max_score if max_score != 0 else 1)), bottom + 10))
 
     if GRAPH_LOG:
         text = font.render("LOG", True, GREEN)
@@ -553,6 +568,7 @@ best_score = [0]
 best_avg_score = [0]
 best_fitness = [0]
 best_avg_fitness = [0]
+score_list = [{} for _ in range(10000)]
 
 coin_list = [np.random.randint(50, WIDTH-50, 2) for _ in range(100)]
 
@@ -575,7 +591,7 @@ while run:
             if event.key == pg.K_h:
                 SHOW_TEXT = not SHOW_TEXT
             if event.key == pg.K_g:
-                GRAPH_NUM = (GRAPH_NUM + 1) % 2
+                GRAPH_NUM = (GRAPH_NUM + 1) % 3
             if event.key == pg.K_s:
                 SAVE_MODE = not SAVE_MODE
             if event.key == pg.K_b:
@@ -592,7 +608,7 @@ while run:
     if BEST_DRAW == False:
         for i in range(40):
             pg.draw.circle(screen, COLOR_LIST[i//5], coin_list[i], COIN_SIZE)
-            pg.draw.circle(screen, WHITE, coin_list[i], COIN_SIZE, 2)  
+            pg.draw.circle(screen, WHITE, coin_list[i], COIN_SIZE, 2)
             text = font.render(f"{i+1}", True, WHITE)
             screen.blit(text, (coin_list[i][0] + 15, coin_list[i][1] - 13))
     else:
@@ -637,6 +653,7 @@ while run:
                 for link in best.links:
                     f.write(f"{link.in_id} {link.out_id} {link.weight} {link.enabled} {link.innov}\n")
         for player in population:
+            score_list[gen-1][player.genome.score] = score_list[gen-1].get(player.genome.score, 0) + 1
             player.genome.avg_fitness = (player.genome.avg_fitness*3 + player.genome.fitness)/4
             player.genome.avg_score = (player.genome.avg_score*3 + player.genome.score)/4
         best_score.append(max(population, key=lambda x: x.genome.score).genome.score)
