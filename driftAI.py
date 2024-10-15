@@ -32,7 +32,7 @@ MAX_LAYER = 4
 
 pg.init()
 screen = pg.display.set_mode((SCREEN_WIDTH, HEIGHT))
-pg.display.set_caption("FlappyAI")
+pg.display.set_caption("driftAI")
 font = pg.font.Font("font.ttf", 24)
 clock = pg.time.Clock()
 
@@ -310,22 +310,25 @@ class Genome:
     
 class Player:
     def __init__(self, genome=None):
-        self.x = PLAYER_X
-        self.y = PLAYER_Y
+        self.x = PLAYER_X + np.random.uniform(-10, 10)
+        self.y = PLAYER_Y + np.random.uniform(-10, 10)
         self.vx = 0
         self.vy = 0
         self.ax = 0
         self.ay = 0
+        self.prev_fitness = 0
+        self.penalty = 0
         self.input = []
         self.genome = genome if genome else Genome()
         
     def reset(self):
-        self.x = PLAYER_X
-        self.y = PLAYER_Y
+        self.x = PLAYER_X + np.random.uniform(-10, 10)
+        self.y = PLAYER_Y + np.random.uniform(-10, 10)
         self.vx = 0
         self.vy = 0
         self.ax = 0
         self.ay = 0
+        self.penalty = 0
         self.genome.fitness = 0
         self.genome.score = 0
 
@@ -359,8 +362,11 @@ class Player:
         self.x += self.vx
         self.y += self.vy
 
-        self.genome.fitness = self.genome.score + 1/(1 + (np.sqrt((self.x - coin_pos1[0])**2 + (self.y - coin_pos1[1])**2))/WIDTH)
-        
+        self.genome.fitness = max(self.genome.score + 1/(1 + (np.sqrt((self.x - coin_pos1[0])**2 + (self.y - coin_pos1[1])**2))/WIDTH) - self.penalty, 0)
+        if self.genome.fitness < self.prev_fitness:
+            self.penalty += 0.001
+        self.prev_fitness = self.genome.fitness
+
     def draw(self):
         pg.draw.circle(screen, COLOR_LIST[self.genome.species], (int(self.x), int(self.y)), PLAYER_SIZE)
         pg.draw.circle(screen, WHITE, (int(self.x), int(self.y)), PLAYER_SIZE, 4)
@@ -371,7 +377,9 @@ class Player:
         pg.draw.line(screen, BLUE, (int(self.x), int(self.y)), (int(self.x + vx*20), int(self.y + vy*20)), 5)
         pg.draw.line(screen, RED, (int(self.x), int(self.y)), (int(self.x + ax*20), int(self.y + ay*20)), 5)
         text = font.render(f"{self.genome.fitness:.2f}", True, WHITE)
-        screen.blit(text, (int(self.x) - 25, int(self.y) - 50))
+        screen.blit(text, (int(self.x) - 20, int(self.y) - 65))
+        text = font.render(f"-{self.penalty:.2f}", True, RED)
+        screen.blit(text, (int(self.x) - 20, int(self.y) - 45))
 
 def read_genome(file):
     genome = Genome()
@@ -589,13 +597,13 @@ while run:
             screen.blit(text, (coin_list[i][0] + 15, coin_list[i][1] - 13))
     else:
         best = max(population, key=lambda x: x.genome.avg_fitness)
-        best.draw()
         coin_pos1 = coin_list[best.genome.score]
         coin_pos2 = coin_list[min(best.genome.score + 1, len(coin_list) - 1)]
         pg.draw.circle(screen, YELLOW, (int(coin_pos1[0]), int(coin_pos1[1])), COIN_SIZE)
         pg.draw.circle(screen, (150, 150, 0), (int(coin_pos1[0]), int(coin_pos1[1])), COIN_SIZE, 2)
         pg.draw.circle(screen, (100, 100, 0), (int(coin_pos2[0]), int(coin_pos2[1])), COIN_SIZE)
         pg.draw.circle(screen, (50, 50, 0), (int(coin_pos2[0]), int(coin_pos2[1])), COIN_SIZE, 2)
+        best.draw()
 
     for player in population:
         player.update()
@@ -638,9 +646,6 @@ while run:
         population = reproduce(population)
         population.sort(key=lambda x: x.genome.fitness)
         push_innov()
-        for player in population:
-            player.x = PLAYER_X + np.random.uniform(-5, 5)
-            player.y = PLAYER_Y + np.random.uniform(-5, 5)
 
     if speed[speed_idx] != 100:
         clock.tick(FPS * speed[speed_idx])
