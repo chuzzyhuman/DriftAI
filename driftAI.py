@@ -363,8 +363,8 @@ class Player:
         self.y += self.vy
 
         self.genome.fitness = max(self.genome.score + 1/(1 + (np.sqrt((self.x - coin_pos1[0])**2 + (self.y - coin_pos1[1])**2))/WIDTH) - self.penalty, 0)
-        if self.genome.fitness < self.prev_fitness:
-            self.penalty += 0.001
+        if radius1 < np.linalg.norm(np.array([coin_pos1[0] - self.x, coin_pos1[1] - self.y])):
+            self.penalty += 0.001*(5-20/(5+self.genome.score))
         self.prev_fitness = self.genome.fitness
 
     def draw(self):
@@ -487,7 +487,7 @@ def draw_stats():
     screen.blit(text, (WIDTH + 20, 100))
     
     top, bottom = 140, 300
-    w, h, g1, g2 = 90, 340, 80, 45
+    w, h, g1, g2 = 90, 325, 80, 37
     min_value, max_value = -1, 1
     best = max(population, key=lambda x: x.genome.avg_fitness).genome
     
@@ -508,8 +508,8 @@ def draw_stats():
         for node in best.layer_dict[i]:
             b = int(255 * (best.value[best.id_to_index[node]] - min_value) / (max_value - min_value))
             b = max(0, min(255, b))
-            pg.draw.circle(screen, (b, b, b) if best.nodes[best.id_to_index[node]].bias == 0 else ((b, 0, 0) if best.nodes[best.id_to_index[node]].bias > 0 else (0, 0, b)), (WIDTH + w + i*g1, h + best.layer_dict[i].index(node)*g2), 20)
-            pg.draw.circle(screen, WHITE if best.nodes[best.id_to_index[node]].activation == 0 else GREEN, (WIDTH + w + i*g1, h + best.layer_dict[i].index(node)*g2), 20, 3)
+            pg.draw.circle(screen, (b, b, b) if best.nodes[best.id_to_index[node]].bias == 0 else ((b, 0, 0) if best.nodes[best.id_to_index[node]].bias > 0 else (0, 0, b)), (WIDTH + w + i*g1, h + best.layer_dict[i].index(node)*g2), 17)
+            pg.draw.circle(screen, WHITE if best.nodes[best.id_to_index[node]].activation == 0 else GREEN, (WIDTH + w + i*g1, h + best.layer_dict[i].index(node)*g2), 17, 3)
             if SHOW_TEXT:
                 text = font.render(str(node), True, WHITE)
                 screen.blit(text, (WIDTH + w + i*g1 - 4.7 - 5.2*int(np.log10(node if node != 0 else 1)), h + best.layer_dict[i].index(node)*g2 - 12))
@@ -535,14 +535,11 @@ def draw_stats():
     elif GRAPH_NUM == 2:
         max_score = 1 if len(score_list[gen-1]) == 0 else max(max(score_list[gen-1].keys()), 1)
         max_count = 0 if len(score_list[gen-1]) == 0 else max(score_list[gen-1].values())
-        prev = (WIDTH + 20, bottom if 0 not in score_list[gen-1] else bottom - log(score_list[gen-1][0]*(bottom - top)/max_count, GRAPH_LOG))
-        for j in range(1, max_score + 1):
+        for j in range(0, max_score + 1):
             if j in score_list[gen-1]:
-                pg.draw.line(screen, GREEN, prev, (WIDTH + 20 + j*(SCREEN_WIDTH-WIDTH-40)/max_score, bottom - log(score_list[gen-1][j]*(bottom - top)/max_count, GRAPH_LOG)), 5)
-                prev = (WIDTH + 20 + j*(SCREEN_WIDTH-WIDTH-40)/max_score, bottom - log(score_list[gen-1][j]*(bottom - top)/max_count, GRAPH_LOG))
+                pg.draw.line(screen, GREEN, (WIDTH + 20 + j*(SCREEN_WIDTH-WIDTH-40)/max_score, bottom), (WIDTH + 20 + j*(SCREEN_WIDTH-WIDTH-40)/max_score, bottom - log(score_list[gen-1][j], GRAPH_LOG)*(bottom - top)/log(max_count, GRAPH_LOG)), 7)
             else:
-                pg.draw.line(screen, GREEN, prev, (WIDTH + 20 + j*(SCREEN_WIDTH-WIDTH-40)/max_score, bottom), 5)
-                prev = (WIDTH + 20 + j*(SCREEN_WIDTH-WIDTH-40)/max_score, bottom)
+                pg.draw.line(screen, GREEN, (WIDTH + 20 + j*(SCREEN_WIDTH-WIDTH-40)/max_score, bottom), (WIDTH + 20 + j*(SCREEN_WIDTH-WIDTH-40)/max_score, bottom-1), 7)
         text = font.render(f"{max_count}", True, WHITE)
         screen.blit(text, (WIDTH + 30, 135))
         text = font.render(f"{max_score}", True, WHITE)
@@ -552,13 +549,13 @@ def draw_stats():
         text = font.render("LOG", True, GREEN)
         screen.blit(text, (WIDTH + 30, 160))
     text = font.render("SAVE:", True, WHITE)
-    screen.blit(text, (WIDTH + 20, HEIGHT - 40))
+    screen.blit(text, (WIDTH + 20, HEIGHT - 35))
     if SAVE_MODE:
         text = font.render("ON", True, GREEN)
-        screen.blit(text, (WIDTH + 75, HEIGHT - 40))
+        screen.blit(text, (WIDTH + 75, HEIGHT - 35))
     else:
         text = font.render("OFF", True, RED)
-        screen.blit(text, (WIDTH + 75, HEIGHT - 40))
+        screen.blit(text, (WIDTH + 75, HEIGHT - 35))
 
 species = []
 population = reproduce([Player() for _ in range(POPULATION)])
