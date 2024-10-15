@@ -18,7 +18,7 @@ COLOR_LIST = [(i, 255, 0) for i in range(0, 256, 51)] + [(255, i, 0) for i in ra
 
 INPUTS, OUTPUTS = 7, 2
 NODE_ID, INNOVATION = INPUTS + OUTPUTS, 0
-POPULATION = 2000
+POPULATION = 3000
 
 c1, c2, c3 = 1, 1, 0.4
 MAX_WEIGHT, MAX_BIAS = 5, 5
@@ -454,8 +454,8 @@ def reproduce(population):
             for _ in range(int(abs(np.random.randn())*2)+1):
                 child.mutate()
             if child.max_layer <= MAX_LAYER and max([len(l) for l in child.layer_dict.values()]) <= INPUTS:
-                child.avg_fitness = s[j].avg_fitness
-                child.avg_score = s[j].avg_score
+                child.avg_fitness = s[j].avg_fitness * 0.9
+                child.avg_score = s[j].avg_score * 0.9
                 new_population.append(child)
     for s in species:
         for i in range(min(len(s), 30)):
@@ -464,11 +464,11 @@ def reproduce(population):
             child = parent1.crossover(parent2)
             if child.max_layer <= MAX_LAYER and max([len(l) for l in child.layer_dict.values()]) <= INPUTS:
                 if parent1.avg_fitness > parent2.avg_fitness:
-                    child.avg_fitness = parent1.avg_fitness
-                    child.avg_score = parent1.avg_score
+                    child.avg_fitness = parent1.avg_fitness * 0.9
+                    child.avg_score = parent1.avg_score * 0.9
                 else:
-                    child.avg_fitness = parent2.avg_fitness
-                    child.avg_score = parent2.avg_score
+                    child.avg_fitness = parent2.avg_fitness * 0.9
+                    child.avg_score = parent2.avg_score * 0.9
                 new_population.append(child)
     for p in sorted(population, key=lambda x: x.genome.fitness, reverse=True):
         new_population.append(p.genome.clone())
@@ -522,7 +522,7 @@ def draw_stats():
             pg.draw.line(screen, RED, (WIDTH + 20 + i*(SCREEN_WIDTH-WIDTH-40)/(len(best_score) - 1), bottom - log(best_score[i], GRAPH_LOG)*(bottom - top)/log(max_score, GRAPH_LOG)), (WIDTH + 20 + (i + 1)*(SCREEN_WIDTH-WIDTH-40)/(len(best_score) - 1), bottom - log(best_score[i + 1], GRAPH_LOG)*(bottom - top)/log(max_score, GRAPH_LOG)), 5)
         for i in range(len(best_avg_score) - 1):
             pg.draw.line(screen, BLUE, (WIDTH + 20 + i*(SCREEN_WIDTH-WIDTH-40)/(len(best_avg_score) - 1), bottom - log(best_avg_score[i], GRAPH_LOG)*(bottom - top)/log(max_score, GRAPH_LOG)), (WIDTH + 20 + (i + 1)*(SCREEN_WIDTH-WIDTH-40)/(len(best_avg_score) - 1), bottom - log(best_avg_score[i + 1], GRAPH_LOG)*(bottom - top)/log(max_score, GRAPH_LOG)), 5)
-        text = font.render(f"{max_score:.2f}", True, WHITE)
+        text = font.render(f"{max_score}", True, WHITE)
         screen.blit(text, (WIDTH + 30, 135))
     elif GRAPH_NUM == 1:
         max_fitness = max(best_fitness + best_avg_fitness)
