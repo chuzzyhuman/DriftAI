@@ -7,7 +7,7 @@ SCREEN_WIDTH = 1200
 FPS = 60
 PLAYER_SIZE, COIN_SIZE = 20, 10
 PLAYER_X, PLAYER_Y = 300, 300
-MAX_SPEED = 15
+MAX_SPEED, ACCELERATION = 15, 1
 
 SHOW_TEXT, GRAPH_LOG, GRAPH_NUM = True, True, 0
 SAVE_MODE = False
@@ -23,7 +23,7 @@ POPULATION = 3000
 c1, c2, c3 = 1, 1, 0.4
 MAX_WEIGHT, MAX_BIAS = 5, 5
 DELTA_THRESHOLD = 0.4
-DEL_NODE, ADD_NODE = 0.01, 0.02
+DEL_NODE, ADD_NODE = 0.01, 0.05
 DEL_LINK, ADD_LINK = 0.05, 0.2
 MUTATE_PROB = 0.7
 ACTIVATION_MODE = 2
@@ -346,14 +346,7 @@ class Player:
         dir2 = diff2 / radius2 if radius2 != 0 else np.array([0, 0])
         self.input = [dir1[0], dir1[1], radius1/WIDTH, dir2[0], dir2[1], self.vx/MAX_SPEED, self.vy/MAX_SPEED]
         outputs = self.genome.feed_forward(self.input)
-        if outputs[0] < 0:
-            self.ax = -0.5
-        if outputs[0] > 0:
-            self.ax = 0.5
-        if outputs[1] < 0:
-            self.ay = -0.5
-        if outputs[1] > 0:
-            self.ay = 0.5
+        self.ax, self.ay = outputs[0]*ACCELERATION, outputs[1]*ACCELERATION
 
         self.vx += self.ax
         self.vy += self.ay
