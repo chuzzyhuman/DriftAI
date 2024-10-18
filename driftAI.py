@@ -474,13 +474,11 @@ def draw_stats():
     screen.blit(text, (WIDTH + 20, 10))
     text = font.render(f"Time: {(time/100):.2f}", True, WHITE)
     screen.blit(text, (WIDTH + 20, 40))
-    text = font.render(f"Alive: {len(population)}", True, WHITE)
-    screen.blit(text, (WIDTH + 20, 70))
     text = font.render(f"Species: {[len(s) for s in species]}", True, WHITE)
-    screen.blit(text, (WIDTH + 20, 100))
+    screen.blit(text, (WIDTH + 20, 70))
     
-    top, bottom = 140, 300
-    w, h, g1, g2 = 90, 325, 80, 36
+    top, bottom = 110, 270
+    w, h, g1, g2 = 90, 295, 80, 36
     min_value, max_value = -1, 1
     best = best_player.genome
     
@@ -516,7 +514,7 @@ def draw_stats():
         for i in range(len(best_avg_score) - 1):
             pg.draw.line(screen, BLUE, (WIDTH + 20 + i*(SCREEN_WIDTH-WIDTH-40)/(len(best_avg_score) - 1), bottom - log(best_avg_score[i], GRAPH_LOG)*(bottom - top)/log(max_score, GRAPH_LOG)), (WIDTH + 20 + (i + 1)*(SCREEN_WIDTH-WIDTH-40)/(len(best_avg_score) - 1), bottom - log(best_avg_score[i + 1], GRAPH_LOG)*(bottom - top)/log(max_score, GRAPH_LOG)), 5)
         text = font.render(f"{max_score}", True, WHITE)
-        screen.blit(text, (WIDTH + 30, 135))
+        screen.blit(text, (WIDTH + 30, 105))
     elif GRAPH_NUM == 1:
         max_fitness = max(best_fitness + best_avg_fitness)
         for i in range(len(best_fitness) - 1):
@@ -524,7 +522,7 @@ def draw_stats():
         for i in range(len(best_avg_fitness) - 1):
             pg.draw.line(screen, (255, 0, 255), (WIDTH + 20 + i*(SCREEN_WIDTH-WIDTH-40)/(len(best_avg_fitness) - 1), bottom - log(best_avg_fitness[i], GRAPH_LOG)*(bottom - top)/log(max_fitness, GRAPH_LOG)), (WIDTH + 20 + (i + 1)*(SCREEN_WIDTH-WIDTH-40)/(len(best_avg_fitness) - 1), bottom - log(best_avg_fitness[i + 1], GRAPH_LOG)*(bottom - top)/log(max_fitness, GRAPH_LOG)), 5)
         text = font.render(f"{max_fitness:.2f}", True, WHITE)
-        screen.blit(text, (WIDTH + 30, 135))
+        screen.blit(text, (WIDTH + 30, 105))
     elif GRAPH_NUM == 2:
         max_score = 1 if len(score_list[gen-1]) == 0 else max(max(score_list[gen-1].keys()), 1) if gen == 1 else max(max(score_list[gen-1].keys()), max(score_list[gen-2].keys()), 1)
         max_count = 0 if len(score_list[gen-1]) == 0 else max(score_list[gen-1].values()) if gen == 1 else max(max(score_list[gen-1].values()), max(score_list[gen-2].values()))
@@ -537,7 +535,7 @@ def draw_stats():
                     else:
                         pg.draw.line(screen, RED, (WIDTH + 20 + j*(SCREEN_WIDTH-WIDTH-40)/max_score, bottom - log(score_list[gen-1][j], GRAPH_LOG)*(bottom - top)/log(max_count, GRAPH_LOG)), (WIDTH + 20 + j*(SCREEN_WIDTH-WIDTH-40)/max_score, bottom - log(score_list[gen-2][j], GRAPH_LOG)*(bottom - top)/log(max_count, GRAPH_LOG)), 7)
         text = font.render(f"{max_count}", True, WHITE)
-        screen.blit(text, (WIDTH + 30, 135))
+        screen.blit(text, (WIDTH + 30, 105))
         text = font.render(f"{max_score}", True, WHITE)
         screen.blit(text, (SCREEN_WIDTH - 30 - 10.4*int(np.log10(max_score if max_score != 0 else 1)), bottom + 10))
 
@@ -545,13 +543,13 @@ def draw_stats():
         text = font.render("LOG", True, GREEN)
         screen.blit(text, (WIDTH + 30, 160))
     text = font.render("SAVE:", True, WHITE)
-    screen.blit(text, (SCREEN_WIDTH - 100, HEIGHT - 35))
+    screen.blit(text, (WIDTH + 20, HEIGHT - 33))
     if SAVE_MODE:
         text = font.render("ON", True, GREEN)
-        screen.blit(text, (SCREEN_WIDTH - 45, HEIGHT - 35))
+        screen.blit(text, (WIDTH + 75, HEIGHT - 33))
     else:
         text = font.render("OFF", True, RED)
-        screen.blit(text, (SCREEN_WIDTH - 45, HEIGHT - 35))
+        screen.blit(text, (WIDTH + 75, HEIGHT - 33))
 
 species = []
 population = reproduce([Player() for _ in range(POPULATION)])
