@@ -9,22 +9,22 @@ PLAYER_SIZE, COIN_SIZE = 20, 10
 PLAYER_X, PLAYER_Y = 300, 300
 MAX_SPEED, ACCELERATION = 15, 1
 
-SHOW_TEXT, GRAPH_LOG, GRAPH_NUM = True, True, 0
+SHOW_TEXT, GRAPH_LOG, GRAPH_NUM = True, False, 0
 SAVE_MODE = False
 BEST_DRAW = False
 
 BLACK, WHITE, RED, GREEN, BLUE, YELLOW = (0, 0, 0), (255, 255, 255), (255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 0)
 COLOR_LIST = [(i, 255, 0) for i in range(0, 256, 51)] + [(255, i, 0) for i in range(255, -1, -51)] + [(i, 0, 0) for i in range(255, -1, -51)] + [(0, 0, 0) for i in range(100)]
 
-INPUTS, OUTPUTS = 7, 2
+INPUTS, OUTPUTS = 8, 2
 NODE_ID, INNOVATION = INPUTS + OUTPUTS, 0
-POPULATION = 3000
+POPULATION = 5000
 
 c1, c2, c3 = 1, 1, 0.4
 MAX_WEIGHT, MAX_BIAS = 5, 5
 DELTA_THRESHOLD = 0.4
-DEL_NODE, ADD_NODE = 0.01, 0.05
-DEL_LINK, ADD_LINK = 0.05, 0.2
+DEL_NODE, ADD_NODE = 0.01, 0.02
+DEL_LINK, ADD_LINK = 0.05, 0.15
 MUTATE_PROB = 0.7
 ACTIVATION_MODE = 2
 ACTIVATION_THRESHOLD = [0, 0.5, 0, 0.5]
@@ -199,7 +199,7 @@ class Genome:
                 link.enabled = True
                 link.weight = 0
                 return
-        self.links = np.append(self.links, Link(in_node, out_node, 0, True, INNOVATION))
+        self.links = np.append(self.links, Link(in_node, out_node, np.random.uniform(-0.1, 0.1), True, INNOVATION))
         INNOVATION += 1
 
     def delete_node(self):
@@ -344,7 +344,7 @@ class Player:
         radius2 = np.linalg.norm(diff2)
         dir1 = diff1 / radius1 if radius1 != 0 else np.array([0, 0])
         dir2 = diff2 / radius2 if radius2 != 0 else np.array([0, 0])
-        self.input = [dir1[0], dir1[1], radius1/WIDTH, dir2[0], dir2[1], self.vx/MAX_SPEED, self.vy/MAX_SPEED]
+        self.input = [dir1[0], dir1[1], radius1/WIDTH, dir2[0], dir2[1], radius2/WIDTH, self.vx/MAX_SPEED, self.vy/MAX_SPEED]
         outputs = self.genome.feed_forward(self.input)
         self.ax, self.ay = outputs[0]*ACCELERATION, outputs[1]*ACCELERATION
 
@@ -356,8 +356,8 @@ class Player:
         self.y += self.vy
 
         self.genome.fitness = max(self.genome.score + 1/(1 + (np.sqrt((self.x - coin_pos1[0])**2 + (self.y - coin_pos1[1])**2))/WIDTH) - self.penalty, 0)
-        if radius1 < np.linalg.norm(np.array([coin_pos1[0] - self.x, coin_pos1[1] - self.y])):
-            self.penalty += 0.001*(5-20/(5+self.genome.score))
+        if np.linalg.norm(diff1) < np.linalg.norm(np.array([coin_pos1[0] - self.x, coin_pos1[1] - self.y])):
+            self.penalty += 0.002*self.genome.score
         self.prev_fitness = self.genome.fitness
 
     def draw(self):
@@ -480,15 +480,15 @@ def draw_stats():
     screen.blit(text, (WIDTH + 20, 100))
     
     top, bottom = 140, 300
-    w, h, g1, g2 = 90, 325, 80, 37
+    w, h, g1, g2 = 90, 325, 80, 36
     min_value, max_value = -1, 1
-    best = max(population, key=lambda x: x.genome.avg_fitness).genome
+    best = best_player.genome
     
     if SHOW_TEXT:
-        for i, value in enumerate(max(population, key=lambda x: x.genome.fitness).input):
+        for i, value in enumerate(best_player.input):
             text = font.render(f"{value:.2f}", True, WHITE)
             screen.blit(text, (WIDTH + 20, h - 12 + i*g2))
-        for i, value in enumerate(max(population, key=lambda x: x.genome.fitness).genome.value[INPUTS:INPUTS+OUTPUTS]):
+        for i, value in enumerate(best_player.genome.value[INPUTS:INPUTS+OUTPUTS]):
             text = font.render(f"{value:.2f}", True, WHITE)
             screen.blit(text, (WIDTH + 100 + best.max_layer*g1 + 20, h - 12 + i*g2))
     for i in range(best.max_layer + 1):
@@ -501,8 +501,8 @@ def draw_stats():
         for node in best.layer_dict[i]:
             b = int(255 * (best.value[best.id_to_index[node]] - min_value) / (max_value - min_value))
             b = max(0, min(255, b))
-            pg.draw.circle(screen, (b, b, b) if best.nodes[best.id_to_index[node]].bias == 0 else ((b, 0, 0) if best.nodes[best.id_to_index[node]].bias > 0 else (0, 0, b)), (WIDTH + w + i*g1, h + best.layer_dict[i].index(node)*g2), 17)
-            pg.draw.circle(screen, WHITE if best.nodes[best.id_to_index[node]].activation == 0 else GREEN, (WIDTH + w + i*g1, h + best.layer_dict[i].index(node)*g2), 17, 3)
+            pg.draw.circle(screen, (b, b, b) if best.nodes[best.id_to_index[node]].bias == 0 else ((b, 0, 0) if best.nodes[best.id_to_index[node]].bias > 0 else (0, 0, b)), (WIDTH + w + i*g1, h + best.layer_dict[i].index(node)*g2), 16)
+            pg.draw.circle(screen, WHITE if best.nodes[best.id_to_index[node]].activation == 0 else GREEN, (WIDTH + w + i*g1, h + best.layer_dict[i].index(node)*g2), 16, 3)
             if SHOW_TEXT:
                 text = font.render(str(node), True, WHITE)
                 screen.blit(text, (WIDTH + w + i*g1 - 4.7 - 5.2*int(np.log10(node if node != 0 else 1)), h + best.layer_dict[i].index(node)*g2 - 12))
@@ -526,13 +526,16 @@ def draw_stats():
         text = font.render(f"{max_fitness:.2f}", True, WHITE)
         screen.blit(text, (WIDTH + 30, 135))
     elif GRAPH_NUM == 2:
-        max_score = 1 if len(score_list[gen-1]) == 0 else max(max(score_list[gen-1].keys()), 1)
-        max_count = 0 if len(score_list[gen-1]) == 0 else max(score_list[gen-1].values())
+        max_score = 1 if len(score_list[gen-1]) == 0 else max(max(score_list[gen-1].keys()), 1) if gen == 1 else max(max(score_list[gen-1].keys()), max(score_list[gen-2].keys()), 1)
+        max_count = 0 if len(score_list[gen-1]) == 0 else max(score_list[gen-1].values()) if gen == 1 else max(max(score_list[gen-1].values()), max(score_list[gen-2].values()))
         for j in range(0, max_score + 1):
             if j in score_list[gen-1]:
-                pg.draw.line(screen, GREEN, (WIDTH + 20 + j*(SCREEN_WIDTH-WIDTH-40)/max_score, bottom), (WIDTH + 20 + j*(SCREEN_WIDTH-WIDTH-40)/max_score, bottom - log(score_list[gen-1][j], GRAPH_LOG)*(bottom - top)/log(max_count, GRAPH_LOG)), 7)
-            else:
-                pg.draw.line(screen, GREEN, (WIDTH + 20 + j*(SCREEN_WIDTH-WIDTH-40)/max_score, bottom), (WIDTH + 20 + j*(SCREEN_WIDTH-WIDTH-40)/max_score, bottom-1), 7)
+                pg.draw.line(screen, WHITE, (WIDTH + 20 + j*(SCREEN_WIDTH-WIDTH-40)/max_score, bottom), (WIDTH + 20 + j*(SCREEN_WIDTH-WIDTH-40)/max_score, bottom - log(score_list[gen-1][j], GRAPH_LOG)*(bottom - top)/log(max_count, GRAPH_LOG)), 7)
+                if gen > 1 and j in score_list[gen-2]:
+                    if score_list[gen-1][j] > score_list[gen-2][j]:
+                        pg.draw.line(screen, GREEN, (WIDTH + 20 + j*(SCREEN_WIDTH-WIDTH-40)/max_score, bottom - log(score_list[gen-1][j], GRAPH_LOG)*(bottom - top)/log(max_count, GRAPH_LOG)), (WIDTH + 20 + j*(SCREEN_WIDTH-WIDTH-40)/max_score, bottom - log(score_list[gen-2][j], GRAPH_LOG)*(bottom - top)/log(max_count, GRAPH_LOG)), 7)
+                    else:
+                        pg.draw.line(screen, RED, (WIDTH + 20 + j*(SCREEN_WIDTH-WIDTH-40)/max_score, bottom - log(score_list[gen-1][j], GRAPH_LOG)*(bottom - top)/log(max_count, GRAPH_LOG)), (WIDTH + 20 + j*(SCREEN_WIDTH-WIDTH-40)/max_score, bottom - log(score_list[gen-2][j], GRAPH_LOG)*(bottom - top)/log(max_count, GRAPH_LOG)), 7)
         text = font.render(f"{max_count}", True, WHITE)
         screen.blit(text, (WIDTH + 30, 135))
         text = font.render(f"{max_score}", True, WHITE)
@@ -542,25 +545,28 @@ def draw_stats():
         text = font.render("LOG", True, GREEN)
         screen.blit(text, (WIDTH + 30, 160))
     text = font.render("SAVE:", True, WHITE)
-    screen.blit(text, (WIDTH + 20, HEIGHT - 35))
+    screen.blit(text, (SCREEN_WIDTH - 100, HEIGHT - 35))
     if SAVE_MODE:
         text = font.render("ON", True, GREEN)
-        screen.blit(text, (WIDTH + 75, HEIGHT - 35))
+        screen.blit(text, (SCREEN_WIDTH - 45, HEIGHT - 35))
     else:
         text = font.render("OFF", True, RED)
-        screen.blit(text, (WIDTH + 75, HEIGHT - 35))
+        screen.blit(text, (SCREEN_WIDTH - 45, HEIGHT - 35))
 
 species = []
 population = reproduce([Player() for _ in range(POPULATION)])
 gen, run, time, pause, speed_idx = 1, True, 0, False, 2
 speed = [0.1, 1, 100]
+best_player = max(population, key=lambda x: x.genome.avg_fitness)
 best_score = [0]
 best_avg_score = [0]
 best_fitness = [0]
 best_avg_fitness = [0]
 score_list = [{} for _ in range(10000)]
+score_list[0][0] = POPULATION
 
-coin_list = [np.random.randint(50, WIDTH-50, 2) for _ in range(100)]
+coin_list = [(i, j) for i in range(50, WIDTH-50, 50) for j in range(50, HEIGHT-50, 50)]
+np.random.shuffle(coin_list)
 
 while run:
     for event in pg.event.get():
@@ -597,19 +603,18 @@ while run:
     
     if BEST_DRAW == False:
         for i in range(40):
-            pg.draw.circle(screen, COLOR_LIST[i//5], coin_list[i], COIN_SIZE)
+            pg.draw.circle(screen, COLOR_LIST[i//3], coin_list[i], COIN_SIZE)
             pg.draw.circle(screen, WHITE, coin_list[i], COIN_SIZE, 2)
             text = font.render(f"{i+1}", True, WHITE)
             screen.blit(text, (coin_list[i][0] + 15, coin_list[i][1] - 13))
     else:
-        best = max(population, key=lambda x: x.genome.avg_fitness)
-        coin_pos1 = coin_list[best.genome.score]
-        coin_pos2 = coin_list[min(best.genome.score + 1, len(coin_list) - 1)]
+        coin_pos1 = coin_list[best_player.genome.score]
+        coin_pos2 = coin_list[min(best_player.genome.score + 1, len(coin_list) - 1)]
         pg.draw.circle(screen, YELLOW, (int(coin_pos1[0]), int(coin_pos1[1])), COIN_SIZE)
         pg.draw.circle(screen, (150, 150, 0), (int(coin_pos1[0]), int(coin_pos1[1])), COIN_SIZE, 2)
-        pg.draw.circle(screen, (100, 100, 0), (int(coin_pos2[0]), int(coin_pos2[1])), COIN_SIZE)
-        pg.draw.circle(screen, (50, 50, 0), (int(coin_pos2[0]), int(coin_pos2[1])), COIN_SIZE, 2)
-        best.draw()
+        pg.draw.circle(screen, (80, 80, 0), (int(coin_pos2[0]), int(coin_pos2[1])), COIN_SIZE)
+        pg.draw.circle(screen, (40, 40, 0), (int(coin_pos2[0]), int(coin_pos2[1])), COIN_SIZE, 2)
+        best_player.draw()
 
     for player in population:
         player.update()
@@ -653,6 +658,7 @@ while run:
         population = reproduce(population)
         population.sort(key=lambda x: x.genome.fitness)
         push_innov()
+        best_player = max(population, key=lambda x: x.genome.avg_fitness)
 
     if speed[speed_idx] != 100:
         clock.tick(FPS * speed[speed_idx])
