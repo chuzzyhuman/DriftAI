@@ -531,6 +531,10 @@ def draw_stats():
                         pg.draw.line(screen, GREEN, (WIDTH + 20 + j*(SCREEN_WIDTH-WIDTH-40)/max_score, bottom - log(score_list[gen-1][j], GRAPH_LOG)*(bottom - top)/log(max_count, GRAPH_LOG)), (WIDTH + 20 + j*(SCREEN_WIDTH-WIDTH-40)/max_score, bottom - log(score_list[gen-2][j], GRAPH_LOG)*(bottom - top)/log(max_count, GRAPH_LOG)), 7)
                     else:
                         pg.draw.line(screen, RED, (WIDTH + 20 + j*(SCREEN_WIDTH-WIDTH-40)/max_score, bottom - log(score_list[gen-1][j], GRAPH_LOG)*(bottom - top)/log(max_count, GRAPH_LOG)), (WIDTH + 20 + j*(SCREEN_WIDTH-WIDTH-40)/max_score, bottom - log(score_list[gen-2][j], GRAPH_LOG)*(bottom - top)/log(max_count, GRAPH_LOG)), 7)
+                elif gen > 1:
+                    pg.draw.line(screen, GREEN, (WIDTH + 20 + j*(SCREEN_WIDTH-WIDTH-40)/max_score, bottom - log(score_list[gen-1][j], GRAPH_LOG)*(bottom - top)/log(max_count, GRAPH_LOG)), (WIDTH + 20 + j*(SCREEN_WIDTH-WIDTH-40)/max_score, bottom), 7)
+            elif gen > 1 and j in score_list[gen-2]:
+                pg.draw.line(screen, RED, (WIDTH + 20 + j*(SCREEN_WIDTH-WIDTH-40)/max_score, bottom - log(score_list[gen-2][j], GRAPH_LOG)*(bottom - top)/log(max_count, GRAPH_LOG)), (WIDTH + 20 + j*(SCREEN_WIDTH-WIDTH-40)/max_score, bottom), 7)
         text = font.render(f"{max_count}", True, WHITE)
         screen.blit(text, (WIDTH + 30, 105))
         text = font.render(f"{max_score}", True, WHITE)
