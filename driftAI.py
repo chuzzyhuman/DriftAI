@@ -540,7 +540,7 @@ def draw_stats():
 
     if GRAPH_LOG:
         text = font.render("LOG", True, GREEN)
-        screen.blit(text, (WIDTH + 30, 160))
+        screen.blit(text, (WIDTH + 30, 130))
     text = font.render("SAVE:", True, WHITE)
     screen.blit(text, (WIDTH + 20, HEIGHT - 33))
     if SAVE_MODE:
