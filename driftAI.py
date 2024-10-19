@@ -315,7 +315,6 @@ class Player:
         self.vy = 0
         self.ax = 0
         self.ay = 0
-        self.prev_fitness = 0
         self.penalty = 0
         self.input = []
         self.genome = genome if genome else Genome()
@@ -357,7 +356,6 @@ class Player:
         self.genome.fitness = max(self.genome.score + 1/(1 + (np.sqrt((self.x - coin_pos1[0])**2 + (self.y - coin_pos1[1])**2))/WIDTH) - self.penalty, 0)
         if np.linalg.norm(diff1) < np.linalg.norm(np.array([coin_pos1[0] - self.x, coin_pos1[1] - self.y])):
             self.penalty += 0.002*self.genome.score
-        self.prev_fitness = self.genome.fitness
 
     def draw(self):
         pg.draw.circle(screen, COLOR_LIST[self.genome.species], (int(self.x), int(self.y)), PLAYER_SIZE)
