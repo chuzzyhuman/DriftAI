@@ -341,22 +341,9 @@ class Player:
         prev_dist = np.sqrt((player.x - coin_pos1[0])**2 + (player.y - coin_pos1[1])**2)
         diff1 = np.array([(coin_pos1[0] - self.x)/WIDTH, (coin_pos1[1] - self.y)/HEIGHT])
         diff2 = np.array([(coin_pos2[0] - self.x)/WIDTH, (coin_pos2[1] - self.y)/HEIGHT])
-        if diff1[0] < 0:
-            diff1[0] -= 1
-        elif diff1[0] > 0:
-            diff1[0] += 1
-        if diff1[1] < 0:
-            diff1[1] -= 1
-        elif diff1[1] > 0:
-            diff1[1] += 1
-        if diff2[0] < 0:
-            diff2[0] -= 1
-        elif diff2[0] > 0:
-            diff2[0] += 1
-        if diff2[1] < 0:
-            diff2[1] -= 1
-        elif diff2[1] > 0:
-            diff2[1] += 1
+        gap = 0.5
+        diff1 += np.sign(diff1) * gap
+        diff2 += np.sign(diff2) * gap
         self.input = [diff1[0], diff1[1], diff2[0], diff2[1], self.vx/MAX_SPEED, self.vy/MAX_SPEED]
         outputs = self.genome.feed_forward(self.input)
         self.ax, self.ay = outputs[0]*ACCELERATION, outputs[1]*ACCELERATION
