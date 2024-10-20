@@ -15,7 +15,7 @@ BEST_DRAW = False
 BLACK, WHITE, RED, GREEN, BLUE, YELLOW = (0, 0, 0), (255, 255, 255), (255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 0)
 COLOR_LIST = [(i, 255, 0) for i in range(0, 256, 51)] + [(255, i, 0) for i in range(255, -1, -51)] + [(i, 0, 0) for i in range(255, -1, -51)] + [(0, 0, 0) for i in range(100)]
 
-INPUTS, OUTPUTS = 8, 2
+INPUTS, OUTPUTS = 6, 2
 NODE_ID, INNOVATION = INPUTS + OUTPUTS, 0
 POPULATION = 5000
 
@@ -316,6 +316,7 @@ class Player:
         self.ax = 0
         self.ay = 0
         self.penalty = 0
+        self.increment = 0
         self.input = []
         self.genome = genome if genome else Genome()
         
@@ -327,6 +328,7 @@ class Player:
         self.ax = 0
         self.ay = 0
         self.penalty = 0
+        self.increment = 0
         self.genome.fitness = 0
         self.genome.score = 0
 
@@ -336,13 +338,26 @@ class Player:
         if np.sqrt((player.x - coin_pos1[0])**2 + (player.y - coin_pos1[1])**2) < PLAYER_SIZE + COIN_SIZE:
             player.genome.score += 1
 
-        diff1 = np.array([coin_pos1[0] - self.x, coin_pos1[1] - self.y])
-        diff2 = np.array([coin_pos2[0] - self.x, coin_pos2[1] - self.y])
-        radius1 = np.linalg.norm(diff1)
-        radius2 = np.linalg.norm(diff2)
-        dir1 = diff1 / radius1 if radius1 != 0 else np.array([0, 0])
-        dir2 = diff2 / radius2 if radius2 != 0 else np.array([0, 0])
-        self.input = [dir1[0], dir1[1], radius1/WIDTH, dir2[0], dir2[1], radius2/WIDTH, self.vx/MAX_SPEED, self.vy/MAX_SPEED]
+        prev_dist = np.sqrt((player.x - coin_pos1[0])**2 + (player.y - coin_pos1[1])**2)
+        diff1 = np.array([(coin_pos1[0] - self.x)/WIDTH, (coin_pos1[1] - self.y)/HEIGHT])
+        diff2 = np.array([(coin_pos2[0] - self.x)/WIDTH, (coin_pos2[1] - self.y)/HEIGHT])
+        if diff1[0] < 0:
+            diff1[0] -= 1
+        elif diff1[0] > 0:
+            diff1[0] += 1
+        if diff1[1] < 0:
+            diff1[1] -= 1
+        elif diff1[1] > 0:
+            diff1[1] += 1
+        if diff2[0] < 0:
+            diff2[0] -= 1
+        elif diff2[0] > 0:
+            diff2[0] += 1
+        if diff2[1] < 0:
+            diff2[1] -= 1
+        elif diff2[1] > 0:
+            diff2[1] += 1
+        self.input = [diff1[0], diff1[1], diff2[0], diff2[1], self.vx/MAX_SPEED, self.vy/MAX_SPEED]
         outputs = self.genome.feed_forward(self.input)
         self.ax, self.ay = outputs[0]*ACCELERATION, outputs[1]*ACCELERATION
 
@@ -354,8 +369,11 @@ class Player:
         self.y += self.vy
 
         self.genome.fitness = max(self.genome.score + 1/(1 + (np.sqrt((self.x - coin_pos1[0])**2 + (self.y - coin_pos1[1])**2))/WIDTH) - self.penalty, 0)
-        if np.linalg.norm(diff1) < np.linalg.norm(np.array([coin_pos1[0] - self.x, coin_pos1[1] - self.y])):
-            self.penalty += 0.002*self.genome.score
+        if prev_dist < np.sqrt((player.x - coin_pos1[0])**2 + (player.y - coin_pos1[1])**2):
+            self.penalty += self.increment*min(self.genome.score, 10)/10
+            self.increment += 0.005
+        else:
+            self.increment = 0
 
     def draw(self):
         pg.draw.circle(screen, COLOR_LIST[self.genome.species], (int(self.x), int(self.y)), PLAYER_SIZE)
