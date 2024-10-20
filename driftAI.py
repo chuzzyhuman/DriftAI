@@ -25,7 +25,8 @@ DELTA_THRESHOLD = 0.4
 DEL_NODE, ADD_NODE = 0.01, 0.02
 DEL_LINK, ADD_LINK = 0.05, 0.15
 MUTATE_PROB = 0.7
-ACTIVATION_MODE = 2
+HIDDEN_ACTIVATION = 3
+OUTPUT_ACTIVATION = 2
 MAX_LAYER = 4
 
 pg.init()
@@ -33,16 +34,7 @@ screen = pg.display.set_mode((SCREEN_WIDTH, HEIGHT))
 pg.display.set_caption("driftAI")
 font = pg.font.Font("font.ttf", 24)
 clock = pg.time.Clock()
-
-def pseudo_random(num, min_val, max_val):
-    a = 1664525
-    c = 1013904223
-    m = 2**32
-    
-    num = (a * num + c) % m
-    scaled_num = min_val + (num % (max_val - min_val + 1))
-    
-    return scaled_num
+np.random.seed(0)
 
 def squash(x, n):
     if n == 0:
@@ -83,7 +75,7 @@ class Link:
 
 class Genome:
     def __init__(self):
-        self.nodes = np.array([Node(i, 0, 0) for i in range(INPUTS)] + [Node(i, 0, ACTIVATION_MODE) for i in range(INPUTS, INPUTS + OUTPUTS)])
+        self.nodes = np.array([Node(i, 0, 0) for i in range(INPUTS)] + [Node(i, 0, OUTPUT_ACTIVATION) for i in range(INPUTS, INPUTS + OUTPUTS)])
         self.links = np.array([], dtype=object)
         self.fitness = 0
         self.avg_fitness = 0
@@ -226,7 +218,7 @@ class Genome:
     def change_activation(self):
         if len(self.nodes) > INPUTS+OUTPUTS:
             node = np.random.choice(self.nodes[INPUTS+OUTPUTS:])
-            node.activation = ACTIVATION_MODE if node.activation == 0 else 0
+            node.activation = HIDDEN_ACTIVATION if node.activation == 0 else 0
 
     def mutate_node(self):
         r = np.random.rand()
