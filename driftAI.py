@@ -371,7 +371,7 @@ class Player:
         self.genome.fitness = max(self.genome.score + 1/(1 + (np.sqrt((self.x - coin_pos1[0])**2 + (self.y - coin_pos1[1])**2))/WIDTH) - self.penalty, 0)
         if prev_dist < np.sqrt((player.x - coin_pos1[0])**2 + (player.y - coin_pos1[1])**2):
             self.penalty += self.increment*min(self.genome.score, 10)/10
-            self.increment += 0.005
+            self.increment = min(self.increment + 0.005, 0.1)
         else:
             self.increment = 0
 
