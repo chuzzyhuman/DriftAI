@@ -22,7 +22,7 @@ POPULATION = 5000
 c1, c2, c3 = 1, 1, 0.4
 MAX_WEIGHT, MAX_BIAS = 5, 5
 DELTA_THRESHOLD = 0.4
-DEL_NODE, ADD_NODE = 0.01, 0.02
+DEL_NODE, ADD_NODE = 0.01, 0.05
 DEL_LINK, ADD_LINK = 0.05, 0.2
 MUTATE_PROB = 0.8
 HIDDEN_ACTIVATION = 2
@@ -439,8 +439,8 @@ def reproduce(population):
             for _ in range(int(abs(np.random.randn())*2)+1):
                 child.mutate()
             if child.max_layer <= MAX_LAYER and max([len(l) for l in child.layer_dict.values()]) <= INPUTS:
-                child.avg_fitness = s[j].avg_fitness * 0.9
-                child.avg_score = s[j].avg_score * 0.9
+                child.avg_fitness = s[j].avg_fitness
+                child.avg_score = s[j].avg_score
                 new_population.append(child)
     for s in species:
         for i in range(min(len(s), 30)):
@@ -449,11 +449,11 @@ def reproduce(population):
             child = parent1.crossover(parent2)
             if child.max_layer <= MAX_LAYER and max([len(l) for l in child.layer_dict.values()]) <= INPUTS:
                 if parent1.avg_fitness > parent2.avg_fitness:
-                    child.avg_fitness = parent1.avg_fitness * 0.9
-                    child.avg_score = parent1.avg_score * 0.9
+                    child.avg_fitness = parent1.avg_fitness
+                    child.avg_score = parent1.avg_score
                 else:
-                    child.avg_fitness = parent2.avg_fitness * 0.9
-                    child.avg_score = parent2.avg_score * 0.9
+                    child.avg_fitness = parent2.avg_fitness
+                    child.avg_score = parent2.avg_score
                 new_population.append(child)
     for p in sorted(population, key=lambda x: x.genome.fitness, reverse=True):
         new_population.append(p.genome.clone())
