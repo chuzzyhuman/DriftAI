@@ -23,9 +23,9 @@ c1, c2, c3 = 1, 1, 0.4
 MAX_WEIGHT, MAX_BIAS = 5, 5
 DELTA_THRESHOLD = 0.4
 DEL_NODE, ADD_NODE = 0.01, 0.02
-DEL_LINK, ADD_LINK = 0.05, 0.15
-MUTATE_PROB = 0.7
-HIDDEN_ACTIVATION = 3
+DEL_LINK, ADD_LINK = 0.05, 0.2
+MUTATE_PROB = 0.8
+HIDDEN_ACTIVATION = 2
 OUTPUT_ACTIVATION = 2
 MAX_LAYER = 4
 
@@ -34,7 +34,6 @@ screen = pg.display.set_mode((SCREEN_WIDTH, HEIGHT))
 pg.display.set_caption("driftAI")
 font = pg.font.Font("font.ttf", 24)
 clock = pg.time.Clock()
-np.random.seed(0)
 
 def squash(x, n):
     if n == 0:
@@ -551,7 +550,7 @@ def draw_stats():
 species = []
 population = reproduce([Player() for _ in range(POPULATION)])
 gen, run, time, pause, speed_idx = 1, True, 0, False, 2
-speed = [0.1, 1, 100]
+speed = [0.1, 1, 40]
 best_player = max(population, key=lambda x: x.genome.avg_fitness)
 best_score = [0]
 best_avg_score = [0]
@@ -655,5 +654,5 @@ while run:
         push_innov()
         best_player = max(population, key=lambda x: x.genome.avg_fitness)
 
-    if speed[speed_idx] != 100:
+    if speed[speed_idx] != 40:
         clock.tick(FPS * speed[speed_idx])
